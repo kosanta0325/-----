@@ -218,10 +218,39 @@
   </div>
 
   <script>
+    const API_KEY = 'AIzaSyDuqlmqZ94sORhc6O_4z0-5sNo5dMZdVgs';
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+
     const btn = document.getElementById('check-btn');
     const inputArea = document.getElementById('input-area');
     const resultArea = document.getElementById('result-area');
     const spinner = document.getElementById('spinner');
+
+    async function checkChinese(text) {
+      const prompt = `あなたは中国語の専門家です。以下の中国語テキストを読み、文法・語彙・表現の間違いや不自然な点を日本語で指摘してください。
+間違いがある場合は「【誤り】元の表現 → 【正しい表現】修正後」の形式でリストアップし、理由も説明してください。
+間違いがない場合は「文法・語彙ともに問題ありません。」と回答してください。
+
+---
+${text}
+---`;
+
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error?.message || `APIエラー (${res.status})`);
+      }
+
+      const data = await res.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '結果を取得できませんでした。';
+    }
 
     btn.addEventListener('click', async () => {
       const text = inputArea.value.trim();
@@ -230,24 +259,18 @@
         return;
       }
 
-      // ローディング表示
       btn.disabled = true;
       spinner.classList.add('active');
       resultArea.classList.add('placeholder-text');
       resultArea.textContent = '';
 
       try {
-        // TODO: ここにAPIコールを実装予定
-        // const result = await checkChinese(text);
-        // resultArea.textContent = result;
-
-        // 仮の応答（API実装前のプレースホルダー）
-        await new Promise(r => setTimeout(r, 800));
+        const result = await checkChinese(text);
         resultArea.classList.remove('placeholder-text');
-        resultArea.textContent = '（APIが接続されると、ここにチェック結果が表示されます）';
+        resultArea.textContent = result;
       } catch (err) {
         resultArea.classList.remove('placeholder-text');
-        resultArea.textContent = 'エラーが発生しました。もう一度お試しください。';
+        resultArea.textContent = `エラーが発生しました：${err.message}`;
       } finally {
         btn.disabled = false;
         spinner.classList.remove('active');
