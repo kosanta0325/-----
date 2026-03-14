@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>中国語チェッカー</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+      background: #f4f6f9;
+      color: #2c3e50;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 24px 64px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      letter-spacing: 0.04em;
+    }
+
+    header p {
+      margin-top: 8px;
+      font-size: 0.95rem;
+      color: #6b7280;
+    }
+
+    .main-card {
+      width: 100%;
+      max-width: 820px;
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .section-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+
+    #input-area {
+      width: 100%;
+      min-height: 180px;
+      padding: 16px;
+      font-size: 1.1rem;
+      line-height: 1.8;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      resize: vertical;
+      outline: none;
+      color: #1a1a2e;
+      transition: border-color 0.2s;
+      font-family: 'Segoe UI', 'Hiragino Sans', 'Yu Gothic', sans-serif;
+    }
+
+    #input-area:focus {
+      border-color: #4f6ef7;
+    }
+
+    #input-area::placeholder {
+      color: #adb5bd;
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: center;
+    }
+
+    #check-btn {
+      padding: 14px 56px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #ffffff;
+      background: linear-gradient(135deg, #4f6ef7, #6c47ff);
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      letter-spacing: 0.06em;
+      transition: opacity 0.2s, transform 0.1s;
+      box-shadow: 0 4px 14px rgba(79, 110, 247, 0.4);
+    }
+
+    #check-btn:hover {
+      opacity: 0.88;
+    }
+
+    #check-btn:active {
+      transform: scale(0.97);
+    }
+
+    #check-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .result-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    #result-area {
+      width: 100%;
+      min-height: 200px;
+      padding: 20px;
+      background: #f8f9fc;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 1rem;
+      line-height: 1.9;
+      color: #374151;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    #result-area.placeholder-text {
+      color: #adb5bd;
+      font-style: italic;
+    }
+
+    .spinner {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
+
+    .spinner.active {
+      display: flex;
+    }
+
+    .spinner-dot {
+      width: 8px;
+      height: 8px;
+      background: #4f6ef7;
+      border-radius: 50%;
+      animation: bounce 1.2s infinite ease-in-out;
+    }
+
+    .spinner-dot:nth-child(2) { animation-delay: 0.2s; }
+    .spinner-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>中国語チェッカー</h1>
+    <p>文法・単語の使い方をAIがチェックします</p>
+  </header>
+
+  <div class="main-card">
+
+    <!-- 入力エリア -->
+    <div>
+      <p class="section-label">中国語テキスト</p>
+      <textarea
+        id="input-area"
+        placeholder="チェックしたい中国語の文章をここに貼り付けてください…"
+      ></textarea>
+    </div>
+
+    <!-- チェックボタン -->
+    <div class="button-row">
+      <button id="check-btn">チェックする</button>
+    </div>
+
+    <hr class="divider">
+
+    <!-- 結果エリア -->
+    <div class="result-wrapper">
+      <p class="section-label">チェック結果</p>
+      <div class="spinner" id="spinner">
+        <div class="spinner-dot"></div>
+        <div class="spinner-dot"></div>
+        <div class="spinner-dot"></div>
+        <span>解析中…</span>
+      </div>
+      <div id="result-area" class="placeholder-text">
+結果がここに表示されます。
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const btn = document.getElementById('check-btn');
+    const inputArea = document.getElementById('input-area');
+    const resultArea = document.getElementById('result-area');
+    const spinner = document.getElementById('spinner');
+
+    btn.addEventListener('click', async () => {
+      const text = inputArea.value.trim();
+      if (!text) {
+        inputArea.focus();
+        return;
+      }
+
+      // ローディング表示
+      btn.disabled = true;
+      spinner.classList.add('active');
+      resultArea.classList.add('placeholder-text');
+      resultArea.textContent = '';
+
+      try {
+        // TODO: ここにAPIコールを実装予定
+        // const result = await checkChinese(text);
+        // resultArea.textContent = result;
+
+        // 仮の応答（API実装前のプレースホルダー）
+        await new Promise(r => setTimeout(r, 800));
+        resultArea.classList.remove('placeholder-text');
+        resultArea.textContent = '（APIが接続されると、ここにチェック結果が表示されます）';
+      } catch (err) {
+        resultArea.classList.remove('placeholder-text');
+        resultArea.textContent = 'エラーが発生しました。もう一度お試しください。';
+      } finally {
+        btn.disabled = false;
+        spinner.classList.remove('active');
+      }
+    });
+  </script>
+
+</body>
+</html>
