@@ -219,7 +219,7 @@
 
   <script>
     const API_KEY = 'AIzaSyDuqlmqZ94sORhc6O_4z0-5sNo5dMZdVgs';
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
 
     const btn = document.getElementById('check-btn');
     const inputArea = document.getElementById('input-area');
@@ -227,9 +227,14 @@
     const spinner = document.getElementById('spinner');
 
     async function checkChinese(text) {
-      const prompt = `あなたは中国語の専門家です。以下の中国語テキストを読み、文法・語彙・表現の間違いや不自然な点を日本語で指摘してください。
-間違いがある場合は「【誤り】元の表現 → 【正しい表現】修正後」の形式でリストアップし、理由も説明してください。
-間違いがない場合は「文法・語彙ともに問題ありません。」と回答してください。
+      const prompt = `あなたは中国語の専門家です。以下の中国語テキストを分析し、日本語で回答してください。
+
+【出力形式】
+1. 「✅ 修正後の文章」として、正しい中国語に直した文章を最初に表示する。
+2. 「📝 修正箇所の解説」として、各修正点について以下の形式で説明する：
+   - 【修正 X】誤り：「元の表現」 → 正しい表現：「修正後」
+     理由：文法・語彙のどこがどのように間違っているか、正しい使い方を詳しく説明する。
+3. 間違いが一切ない場合は「✅ 文法・語彙ともに問題ありません。」とだけ回答する。
 
 ---
 ${text}
